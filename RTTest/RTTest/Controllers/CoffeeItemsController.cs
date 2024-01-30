@@ -14,6 +14,37 @@ namespace RTTest.Controllers
     public class CoffeeItemsController : ControllerBase
     {
         private readonly CoffeeContext _context;
+        private static int _numCalls = 0;
+
+
+        // GET: api/BrewCoffee
+        [HttpGet("brew-coffee")]
+        public async Task<ActionResult<CoffeeItem>> BrewCoffee()
+        {
+            var aprilFirstDateTime = new DateTime(1, 4, 1);
+            var dateTime = DateTime.Now;
+
+            if (dateTime.Month.Equals(aprilFirstDateTime.Month) && dateTime.Day.Equals(aprilFirstDateTime.Day))
+            {
+                return StatusCode(418, "I'm a teapot");
+            }
+
+            _numCalls++;
+
+            if (_numCalls % 5 == 0)
+            {
+                _numCalls = 0;
+                return StatusCode(503);
+            }
+
+            var brewResponse = new BrewResponse
+            {
+                Message = "Your piping hot coffee is ready",
+                Prepared = DateTime.Now,
+            };
+
+            return Ok(brewResponse);
+        }
 
         public CoffeeItemsController(CoffeeContext context)
         {
