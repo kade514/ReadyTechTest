@@ -68,7 +68,6 @@ namespace RTTest.Controllers
                 brewResponse.Message = "Your refreshing iced coffee is ready";
             }
 
-
             return StatusCode(200, brewResponse);
         }
     }
