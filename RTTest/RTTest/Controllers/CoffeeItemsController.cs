@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using RTTest.Models;
+using static System.Net.WebRequestMethods;
 
 namespace RTTest.Controllers
 {
@@ -33,6 +35,27 @@ namespace RTTest.Controllers
                 _numCalls = 0;
                 return StatusCode(503);
             }
+            
+            //hardcoded melbourne since it's not specified in the docs that it shouldn't be.
+            var url = "http://api.weatherapi.com/v1/current.json?key=d53b376451cf43a9bec11853243001&q=Melbourne&aqi=no";
+            WeatherResponse weather = null;
+
+            using (var client = new HttpClient())
+            { 
+                var response = client.GetAsync(url);
+
+                if (response.Result.RequestMessage == null)
+                {
+                    return BadRequest("response was null");
+                }
+
+                var content = await response.Result.Content.ReadAsStringAsync();
+
+                if (string.IsNullOrEmpty(content))
+                    return BadRequest("Empty weather data");
+
+                weather = JsonConvert.DeserializeObject<WeatherResponse>(content);
+            }
 
             var brewResponse = new BrewResponse
             {
@@ -40,7 +63,13 @@ namespace RTTest.Controllers
                 Prepared = DateTime.Now,
             };
 
-            return Ok(brewResponse);
+            if (weather != null && weather.current.temp_c >= 30)
+            {
+                brewResponse.Message = "Your refreshing iced coffee is ready";
+            }
+
+
+            return StatusCode(200, brewResponse);
         }
     }
 }
